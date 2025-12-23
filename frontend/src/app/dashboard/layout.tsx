@@ -24,6 +24,7 @@ import { useToast } from '@/hooks/use-toast';
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Projects', href: '/dashboard/projects', icon: FolderKanban },
+  { name: 'Prompt Studio', href: '/prompt-studio', icon: Sparkles },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];
 
