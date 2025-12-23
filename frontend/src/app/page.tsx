@@ -178,12 +178,8 @@ const features = [
   {
     icon: Code2,
     title: 'Multi-Language Support',
-  {
-    icon: Code2,
-    title: 'Multi-Language Support',
     description: 'Generate code in TypeScript, Python, Go, Rust, and 20+ languages.',
     category: 'core',
-  },
   },
 ];
 
