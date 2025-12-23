@@ -1,0 +1,108 @@
+17:22:54.688 Running build in Washington, D.C., USA (East) – iad1
+17:22:54.689 Build machine configuration: 2 cores, 8 GB
+17:22:54.810 Cloning github.com/jitenkr2030/Vibe-Engineering-Platform (Branch: main, Commit: 5c84157)
+17:22:54.811 Previous build caches not available.
+17:22:55.027 Cloning completed: 217.000ms
+17:22:55.074 Found .vercelignore
+17:22:55.076 Removed 0 ignored files defined in .vercelignore
+17:22:55.385 Running "vercel build"
+17:22:55.794 Vercel CLI 50.1.3
+17:22:56.113 Running "install" command: `npm install`...
+17:23:52.789 npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+17:23:55.109 npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+17:23:56.010 npm warn deprecated @humanwhocodes/object-schema@2.0.3: Use @eslint/object-schema instead
+17:23:56.243 npm warn deprecated @humanwhocodes/config-array@0.13.0: Use @eslint/config-array instead
+17:23:58.265 npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+17:24:01.487 npm warn deprecated eslint@8.57.1: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+17:24:15.153 
+17:24:15.154 added 915 packages, and audited 917 packages in 1m
+17:24:15.155 
+17:24:15.155 278 packages are looking for funding
+17:24:15.155   run `npm fund` for details
+17:24:15.233 
+17:24:15.235 11 vulnerabilities (8 moderate, 3 high)
+17:24:15.235 
+17:24:15.235 To address all issues (including breaking changes), run:
+17:24:15.236   npm audit fix --force
+17:24:15.236 
+17:24:15.236 Run `npm audit` for details.
+17:24:15.267 Detected Next.js version: 14.2.35
+17:24:15.267 Running "npm install && npm run build"
+17:24:19.036 
+17:24:19.036 added 1 package, and audited 579 packages in 4s
+17:24:19.037 
+17:24:19.038 141 packages are looking for funding
+17:24:19.038   run `npm fund` for details
+17:24:19.041 
+17:24:19.041 3 moderate severity vulnerabilities
+17:24:19.041 
+17:24:19.042 To address all issues (including breaking changes), run:
+17:24:19.042   npm audit fix --force
+17:24:19.042 
+17:24:19.042 Run `npm audit` for details.
+17:24:19.278 
+17:24:19.278 > @vibe/frontend@1.0.0 build
+17:24:19.279 > next build
+17:24:19.279 
+17:24:19.859 Attention: Next.js now collects completely anonymous telemetry regarding usage.
+17:24:19.860 This information is used to shape Next.js' roadmap and prioritize features.
+17:24:19.860 You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+17:24:19.860 https://nextjs.org/telemetry
+17:24:19.861 
+17:24:19.922   ▲ Next.js 14.2.35
+17:24:19.923 
+17:24:19.994    Creating an optimized production build ...
+17:24:27.152 Failed to compile.
+17:24:27.153 
+17:24:27.153 src/app/layout.tsx
+17:24:27.153 An error occurred in `next/font`.
+17:24:27.153 
+17:24:27.153 Error: Cannot find module 'autoprefixer'
+17:24:27.153 Require stack:
+17:24:27.153 - /vercel/path0/node_modules/next/dist/build/webpack/config/blocks/css/plugins.js
+17:24:27.153 - /vercel/path0/node_modules/next/dist/build/webpack/config/blocks/css/index.js
+17:24:27.153 - /vercel/path0/node_modules/next/dist/build/webpack/config/index.js
+17:24:27.153 - /vercel/path0/node_modules/next/dist/build/webpack-config.js
+17:24:27.154 - /vercel/path0/node_modules/next/dist/build/webpack-build/impl.js
+17:24:27.154 - /vercel/path0/node_modules/next/dist/compiled/jest-worker/processChild.js
+17:24:27.154     at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+17:24:27.154     at /vercel/path0/node_modules/next/dist/server/require-hook.js:55:36
+17:24:27.154     at Function.resolve (node:internal/modules/helpers:193:19)
+17:24:27.154     at loadPlugin (/vercel/path0/node_modules/next/dist/build/webpack/config/blocks/css/plugins.js:49:32)
+17:24:27.154     at /vercel/path0/node_modules/next/dist/build/webpack/config/blocks/css/plugins.js:157:56
+17:24:27.154     at Array.map (<anonymous>)
+17:24:27.154     at getPostCssPlugins (/vercel/path0/node_modules/next/dist/build/webpack/config/blocks/css/plugins.js:157:47)
+17:24:27.154     at async /vercel/path0/node_modules/next/dist/build/webpack/config/blocks/css/index.js:124:36
+17:24:27.154     at async /vercel/path0/node_modules/next/dist/build/webpack/loaders/next-font-loader/index.js:86:33
+17:24:27.154     at async Span.traceAsyncFn (/vercel/path0/node_modules/next/dist/trace/trace.js:154:20)
+17:24:27.154 
+17:24:27.154 ./src/app/auth/login/page.tsx
+17:24:27.154 Module not found: Can't resolve '@/components/ui/button'
+17:24:27.154 
+17:24:27.154 https://nextjs.org/docs/messages/module-not-found
+17:24:27.154 
+17:24:27.154 ./src/app/auth/login/page.tsx
+17:24:27.154 Module not found: Can't resolve '@/components/ui/input'
+17:24:27.154 
+17:24:27.155 https://nextjs.org/docs/messages/module-not-found
+17:24:27.155 
+17:24:27.155 ./src/app/auth/login/page.tsx
+17:24:27.155 Module not found: Can't resolve '@/components/ui/card'
+17:24:27.155 
+17:24:27.155 https://nextjs.org/docs/messages/module-not-found
+17:24:27.155 
+17:24:27.155 ./src/app/auth/login/page.tsx
+17:24:27.155 Module not found: Can't resolve '@/services/auth'
+17:24:27.155 
+17:24:27.155 https://nextjs.org/docs/messages/module-not-found
+17:24:27.155 
+17:24:27.165 
+17:24:27.166 > Build failed because of webpack errors
+17:24:27.188 npm error Lifecycle script `build` failed with error:
+17:24:27.188 npm error code 1
+17:24:27.188 npm error path /vercel/path0/frontend
+17:24:27.188 npm error workspace @vibe/frontend@1.0.0
+17:24:27.188 npm error location /vercel/path0/frontend
+17:24:27.188 npm error command failed
+17:24:27.188 npm error command sh -c next build
+17:24:27.204 Error: Command "npm install && npm run build" exited with 1
