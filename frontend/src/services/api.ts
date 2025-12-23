@@ -113,4 +113,7 @@ export const apiClient = {
   delete: <T>(url: string) => api.delete<T>(url),
 };
 
+// Named export for backward compatibility
+export { api };
+
 export default api;
