@@ -1,0 +1,254 @@
+name: Continuous Deployment
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOCKER_BUILDKIT: 1
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event.inputs.environment == 'staging')
+    environment:
+      name: staging
+      url: https://staging.vibe.dev
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull latest images
+        run: |
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:latest
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:latest
+
+      - name: Create staging environment file
+        run: |
+          cat > staging/.env << EOF
+          NODE_ENV=staging
+          PORT=3000
+          API_PREFIX=/api/v1
+          DATABASE_URL=${{ secrets.STAGING_DATABASE_URL }}
+          REDIS_URL=${{ secrets.STAGING_REDIS_URL }}
+          JWT_SECRET=${{ secrets.STAGING_JWT_SECRET }}
+          ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+          GITHUB_CLIENT_ID=${{ secrets.STAGING_GITHUB_CLIENT_ID }}
+          GITHUB_CLIENT_SECRET=${{ secrets.STAGING_GITHUB_CLIENT_SECRET }}
+          NEXT_PUBLIC_API_URL=https://api.staging.vibe.dev
+          NEXT_PUBLIC_WS_URL=wss://api.staging.vibe.dev
+          EOF
+
+      - name: Deploy to staging with Docker Compose
+        run: |
+          cd staging
+          docker compose down
+          docker compose pull
+          docker compose up -d
+        env:
+          COMPOSE_FILE: staging/docker-compose.yml
+
+      - name: Wait for services to be healthy
+        run: |
+          echo "Waiting for services to start..."
+          sleep 30
+          for i in {1..30}; do
+            if curl -sf http://localhost:3000/health > /dev/null 2>&1; then
+              echo "Frontend is healthy"
+              break
+            fi
+            echo "Waiting for frontend... ($i/30)"
+            sleep 2
+          done
+
+      - name: Run health check
+        run: |
+          curl -sf http://localhost:3000/api/health || exit 1
+          curl -sf http://localhost:3001/health || exit 1
+
+      - name: Notify deployment
+        uses: slackapi/slack-github-action@v1.25.0
+        with:
+          payload: |
+            {
+              "text": "🚀 Deployed to Staging",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*🚀 Deployment Successful*\n*Environment:* Staging\n*Commit:* ${{ github.sha }}\n*Author:* ${{ github.actor }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production'
+    environment:
+      name: production
+      url: https://vibe.dev
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull latest images
+        run: |
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:latest
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:latest
+
+      - name: Create production environment file
+        run: |
+          cat > production/.env << EOF
+          NODE_ENV=production
+          PORT=3000
+          API_PREFIX=/api/v1
+          DATABASE_URL=${{ secrets.PRODUCTION_DATABASE_URL }}
+          REDIS_URL=${{ secrets.PRODUCTION_REDIS_URL }}
+          JWT_SECRET=${{ secrets.PRODUCTION_JWT_SECRET }}
+          ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+          GITHUB_CLIENT_ID=${{ secrets.PRODUCTION_GITHUB_CLIENT_ID }}
+          GITHUB_CLIENT_SECRET=${{ secrets.PRODUCTION_GITHUB_CLIENT_SECRET }}
+          NEXT_PUBLIC_API_URL=https://api.vibe.dev
+          NEXT_PUBLIC_WS_URL=wss://api.vibe.dev
+          EOF
+
+      - name: Create Kubernetes secrets
+        run: |
+          kubectl create secret generic vibe-secrets \
+            --from-literal=database-url=${{ secrets.PRODUCTION_DATABASE_URL }} \
+            --from-literal=redis-url=${{ secrets.PRODUCTION_REDIS_URL }} \
+            --from-literal=jwt-secret=${{ secrets.PRODUCTION_JWT_SECRET }} \
+            --from-literal=anthropic-api-key=${{ secrets.ANTHROPIC_API_KEY }} \
+            --from-literal=openai-api-key=${{ secrets.OPENAI_API_KEY }} \
+            --namespace=vibe-production \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Deploy to production with Kubernetes
+        run: |
+          kubectl set image deployment/backend backend=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:latest -n vibe-production
+          kubectl set image deployment/frontend frontend=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:latest -n vibe-production
+          kubectl rollout status deployment/backend -n vibe-production --timeout=300s
+          kubectl rollout status deployment/frontend -n vibe-production --timeout=300s
+
+      - name: Run smoke tests
+        run: |
+          SMOKE_TEST_PASSED=true
+          if ! curl -sf https://vibe.dev/api/health > /dev/null 2>&1; then
+            echo "Backend health check failed"
+            SMOKE_TEST_PASSED=false
+          fi
+          if ! curl -sf https://vibe.dev > /dev/null 2>&1; then
+            echo "Frontend health check failed"
+            SMOKE_TEST_PASSED=false
+          fi
+          if [ "$SMOKE_TEST_PASSED" = "false" ]; then
+            exit 1
+          fi
+
+      - name: Notify production deployment
+        uses: slackapi/slack-github-action@v1.25.0
+        with:
+          payload: |
+            {
+              "text": "🚨 Production Deployment",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*🚨 Production Deployment Successful*\n*Environment:* Production\n*Commit:* ${{ github.sha }}\n*Author:* ${{ github.actor }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  rollback:
+    name: Rollback Production
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'rollback'
+    environment:
+      name: production
+      url: https://vibe.dev
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Get previous deployment version
+        run: |
+          PREVIOUS_IMAGE=$(kubectl get deployment backend -n vibe-production -o jsonpath='{.spec.template.spec.containers[0].image}' | cut -d':' -f2)
+          echo "Rolling back to: $PREVIOUS_IMAGE"
+          kubectl set image deployment/backend backend=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:$PREVIOUS_IMAGE -n vibe-production
+          kubectl set image deployment/frontend frontend=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:$PREVIOUS_IMAGE -n vibe-production
+
+      - name: Verify rollback
+        run: |
+          kubectl rollout status deployment/backend -n vibe-production --timeout=300s
+          kubectl rollout status deployment/frontend -n vibe-production --timeout=300s
+
+      - name: Notify rollback
+        uses: slackapi/slack-github-action@v1.25.0
+        with:
+          payload: |
+            {
+              "text": "⏪ Production Rollback",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*⏪ Production Rollback Initiated*\n*Environment:* Production\n*Initiated by:* ${{ github.actor }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
