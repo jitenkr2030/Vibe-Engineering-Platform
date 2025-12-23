@@ -12,6 +12,5 @@ docker-compose.yml
 pyproject.toml
 workspace.json
 tsconfig.json
-package.json
 .env.example
 .env
