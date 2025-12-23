@@ -1,0 +1,20 @@
+# Vercel Ignore Rules
+# Only deploy the frontend directory contents
+
+# Include everything in frontend
+!**
+
+# Exclude root-level files and directories that shouldn't be in frontend build
+../backend
+../database
+../infrastructure
+../.github
+../.git
+../node_modules
+../*.md
+../docker-compose.yml
+../pyproject.toml
+../workspace.json
+../tsconfig.json
+../package.json
+../.env.example
