@@ -6,6 +6,9 @@ const nextConfig = {
   images: {
     domains: ['avatars.githubusercontent.com', 'lh3.googleusercontent.com'],
   },
+  typescript: {
+    tsconfigPath: './tsconfig.json',
+  },
   experimental: {
     serverActions: {
       bodySizeLimit: '2mb',
