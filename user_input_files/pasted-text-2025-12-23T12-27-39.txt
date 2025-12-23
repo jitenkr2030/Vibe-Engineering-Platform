@@ -1,0 +1,107 @@
+17:50:57.313 Running build in Washington, D.C., USA (East) – iad1
+17:50:57.314 Build machine configuration: 2 cores, 8 GB
+17:50:57.596 Cloning github.com/jitenkr2030/Vibe-Engineering-Platform (Branch: main, Commit: 962a8ef)
+17:50:57.598 Previous build caches not available.
+17:50:58.093 Cloning completed: 496.000ms
+17:50:58.241 Found .vercelignore
+17:50:58.302 Removed 122 ignored files defined in .vercelignore
+17:50:58.302   /.env.example
+17:50:58.303   /.git/config
+17:50:58.303   /.git/description
+17:50:58.303   /.git/FETCH_HEAD
+17:50:58.303   /.git/HEAD
+17:50:58.304   /.git/hooks/applypatch-msg.sample
+17:50:58.304   /.git/hooks/commit-msg.sample
+17:50:58.304   /.git/hooks/fsmonitor-watchman.sample
+17:50:58.304   /.git/hooks/post-update.sample
+17:50:58.305   /.git/hooks/pre-applypatch.sample
+17:50:59.125 Running "vercel build"
+17:50:59.533 Vercel CLI 50.1.3
+17:50:59.860 Running "install" command: `npm install`...
+17:51:46.420 npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+17:51:48.946 npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+17:51:49.747 npm warn deprecated @humanwhocodes/object-schema@2.0.3: Use @eslint/object-schema instead
+17:51:50.078 npm warn deprecated @humanwhocodes/config-array@0.13.0: Use @eslint/config-array instead
+17:51:51.797 npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+17:51:55.047 npm warn deprecated eslint@8.57.1: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+17:52:07.878 
+17:52:07.879 added 872 packages, and audited 874 packages in 1m
+17:52:07.879 
+17:52:07.880 278 packages are looking for funding
+17:52:07.880   run `npm fund` for details
+17:52:07.948 
+17:52:07.949 11 vulnerabilities (8 moderate, 3 high)
+17:52:07.949 
+17:52:07.950 To address all issues (including breaking changes), run:
+17:52:07.950   npm audit fix --force
+17:52:07.951 
+17:52:07.951 Run `npm audit` for details.
+17:52:07.976 Detected Next.js version: 14.2.35
+17:52:07.977 Running "npm install && npm run build"
+17:52:11.759 
+17:52:11.759 added 1 package, and audited 554 packages in 4s
+17:52:11.760 
+17:52:11.760 143 packages are looking for funding
+17:52:11.761   run `npm fund` for details
+17:52:11.767 
+17:52:11.767 3 moderate severity vulnerabilities
+17:52:11.767 
+17:52:11.767 To address all issues (including breaking changes), run:
+17:52:11.767   npm audit fix --force
+17:52:11.768 
+17:52:11.768 Run `npm audit` for details.
+17:52:12.065 
+17:52:12.065 > @vibe/frontend@1.0.0 build
+17:52:12.065 > next build
+17:52:12.065 
+17:52:12.920 Attention: Next.js now collects completely anonymous telemetry regarding usage.
+17:52:12.922 This information is used to shape Next.js' roadmap and prioritize features.
+17:52:12.922 You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+17:52:12.922 https://nextjs.org/telemetry
+17:52:12.923 
+17:52:13.064   ▲ Next.js 14.2.35
+17:52:13.065 
+17:52:13.328    Creating an optimized production build ...
+17:52:27.883 Failed to compile.
+17:52:27.883 
+17:52:27.884 ./src/app/dashboard/ai/cicd-generator/page.tsx
+17:52:27.885 Module not found: Can't resolve '@/components/ui/checkbox'
+17:52:27.885 
+17:52:27.886 https://nextjs.org/docs/messages/module-not-found
+17:52:27.886 
+17:52:27.886 ./src/app/dashboard/settings/page.tsx
+17:52:27.887 Module not found: Can't resolve 'next-themes'
+17:52:27.887 
+17:52:27.887 https://nextjs.org/docs/messages/module-not-found
+17:52:27.887 
+17:52:27.888 ./src/app/providers.tsx
+17:52:27.888 Module not found: Can't resolve 'next-themes'
+17:52:27.888 
+17:52:27.889 https://nextjs.org/docs/messages/module-not-found
+17:52:27.889 
+17:52:27.889 ./src/components/ide/IDELayout.tsx
+17:52:27.890 Module not found: Can't resolve 'react-resizable-panels'
+17:52:27.890 
+17:52:27.890 https://nextjs.org/docs/messages/module-not-found
+17:52:27.890 
+17:52:27.891 Import trace for requested module:
+17:52:27.891 ./src/app/dashboard/projects/[id]/page.tsx
+17:52:27.892 
+17:52:27.892 ./src/components/ide/IDELayout.tsx
+17:52:27.892 Module not found: Can't resolve '@/components/services/websocket.service'
+17:52:27.892 
+17:52:27.893 https://nextjs.org/docs/messages/module-not-found
+17:52:27.893 
+17:52:27.893 Import trace for requested module:
+17:52:27.894 ./src/app/dashboard/projects/[id]/page.tsx
+17:52:27.899 
+17:52:27.901 
+17:52:27.902 > Build failed because of webpack errors
+17:52:27.962 npm error Lifecycle script `build` failed with error:
+17:52:27.963 npm error code 1
+17:52:27.964 npm error path /vercel/path0/frontend
+17:52:27.964 npm error workspace @vibe/frontend@1.0.0
+17:52:27.964 npm error location /vercel/path0/frontend
+17:52:27.965 npm error command failed
+17:52:27.965 npm error command sh -c next build
+17:52:27.981 Error: Command "npm install && npm run build" exited with 1
