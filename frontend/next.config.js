@@ -11,6 +11,14 @@ const nextConfig = {
   },
   // Ensure UI components are transpiled
   transpilePackages: ['lucide-react'],
+  // Explicit webpack configuration for path aliases
+  webpack: (config, { defaultLoaders }) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': require('path').resolve(__dirname, './src'),
+    };
+    return config;
+  },
 };
 
 module.exports = nextConfig;
