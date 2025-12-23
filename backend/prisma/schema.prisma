@@ -1,0 +1,570 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// User Management
+// ============================================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String?
+  name          String
+  avatar        String?
+  role          UserRole  @default(USER)
+  emailVerified Boolean   @default(false)
+  lastLoginAt   DateTime?
+
+  // Subscription
+  subscription     SubscriptionTier @default(FREE)
+  tokenUsage       Int              @default(0)
+  tokenLimit       Int              @default(10000)
+  projectLimit     Int              @default(3)
+
+  // Preferences stored as JSON
+  preferences Json?   @default("{}")
+
+  // Relations
+  projects        Project[]
+  collaborations  Collaborator[]
+  sessions        Session[]
+  tokens          Token[]
+  memories        ProjectMemory[]
+  templates       PromptTemplate[]
+  reviews         CodeReview[]
+
+  // Audit
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+enum UserRole {
+  ADMIN
+  USER
+  ENTERPRISE
+  TRIAL
+}
+
+enum SubscriptionTier {
+  FREE
+  PRO
+  TEAM
+  ENTERPRISE
+}
+
+// ============================================
+// Authentication
+// ============================================
+
+model Session {
+  id           String   @id @default(cuid())
+  userId       String
+  token        String   @unique
+  ipAddress    String?
+  userAgent    String?
+  expiresAt    DateTime
+  lastUsedAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@map("sessions")
+}
+
+model Token {
+  id        String   @id @default(cuid())
+  userId    String
+  type      TokenType
+  token     String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@map("tokens")
+}
+
+enum TokenType {
+  VERIFICATION
+  RESET_PASSWORD
+  API_KEY
+}
+
+model Account {
+  id           String   @id @default(cuid())
+  userId       String
+  provider     String
+  providerId   String
+  accessToken  String?
+  refreshToken String?
+  expiresAt    DateTime?
+  password     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerId])
+  @@map("accounts")
+}
+
+// ============================================
+// Projects
+// ============================================
+
+model Project {
+  id          String          @id @default(cuid())
+  name        String
+  description String?
+  ownerId     String
+  visibility  ProjectVisibility @default(PRIVATE)
+  status      ProjectStatus   @default(PLANNING)
+
+  // Tech Stack stored as JSON
+  techStack   Json?
+
+  // Architecture stored as JSON
+  architecture Json?
+
+  // Settings stored as JSON
+            @default(" settings    Json?{}")
+
+  // Metrics stored as JSON
+  metrics     Json?           @default("{}")
+
+  // Relations
+  owner        User           @relation(fields: [ownerId], references: [id])
+  files        ProjectFile[]
+  collaborators Collaborator[]
+  generations  CodeGeneration[]
+  qualityGates QualityGate[]
+  deployments  Deployment[]
+  conversations Conversation[]
+  memories     ProjectMemory[]
+  decisions    ArchitectureDecision[]
+
+  // Audit
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@index([ownerId])
+  @@map("projects")
+}
+
+enum ProjectVisibility {
+  PRIVATE
+  TEAM
+  PUBLIC
+}
+
+enum ProjectStatus {
+  PLANNING
+  IN_PROGRESS
+  REVIEW
+  DEPLOYED
+  ARCHIVED
+}
+
+model Collaborator {
+  id        String           @id @default(cuid())
+  projectId String
+  userId    String
+  role      CollaboratorRole @default(DEVELOPER)
+  permissions Json?          @default("[]")
+  joinedAt  DateTime         @default(now())
+
+  project  Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@map("collaborators")
+}
+
+enum CollaboratorRole {
+  OWNER
+  ADMIN
+  DEVELOPER
+  VIEWER
+}
+
+// ============================================
+// Files
+// ============================================
+
+model ProjectFile {
+  id          String     @id @default(cuid())
+  projectId   String
+  path        String
+  name        String
+  type        FileType
+  content     String?
+  language    String?
+  size        Int        @default(0)
+  checksum    String?
+  status      FileStatus @default(ACTIVE)
+  metadata    Json?      @default("{}")
+
+  project     Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  versions    FileVersion[]
+  tests       TestFile[]
+
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@unique([projectId, path])
+  @@index([projectId])
+  @@map("project_files")
+}
+
+enum FileType {
+  FILE
+  DIRECTORY
+  CONFIG
+  DOCUMENTATION
+  TEST
+}
+
+enum FileStatus {
+  ACTIVE
+  MODIFIED
+  DELETED
+  STAGED
+}
+
+model FileVersion {
+  id          String   @id @default(cuid())
+  fileId      String
+  content     String
+  message     String?
+  checksum    String
+  createdAt   DateTime @default(now())
+
+  file        ProjectFile @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  @@index([fileId])
+  @@map("file_versions")
+}
+
+model TestFile {
+  id          String   @id @default(cuid())
+  fileId      String
+  path        String
+  content     String
+  type        TestType
+  coverage    Float?
+  passed      Int?
+  failed      Int?
+  skipped     Int?
+  executedAt  DateTime?
+
+  file        ProjectFile @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  @@index([fileId])
+  @@map("test_files")
+}
+
+enum TestType {
+  UNIT
+  INTEGRATION
+  E2E
+  CONTRACT
+  PERFORMANCE
+}
+
+// ============================================
+// AI Code Generation
+// ============================================
+
+model CodeGeneration {
+  id           String   @id @default(cuid())
+  projectId    String
+  userId       String
+  prompt       String
+  response     Json?
+  status       GenerationStatus @default(PENDING)
+  error        String?
+  tokenUsage   Json?
+  latency      Int?
+  quality      Json?
+  metadata     Json?    @default("{}")
+
+  project      Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([userId])
+  @@map("code_generations")
+}
+
+enum GenerationStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+// ============================================
+// Quality Gates
+// ============================================
+
+model QualityGate {
+  id          String           @id @default(cuid())
+  projectId   String
+  name        String
+  status      QualityGateStatus @default(PENDING)
+  results     Json?            @default("[]")
+  summary     Json?
+  triggeredBy String?
+
+  project     Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([projectId])
+  @@map("quality_gates")
+}
+
+enum QualityGateStatus {
+  PENDING
+  RUNNING
+  PASSED
+  FAILED
+  WARNING
+}
+
+// ============================================
+// Deployment
+// ============================================
+
+model Deployment {
+  id          String            @id @default(cuid())
+  projectId   String
+  version     String
+  environment DeploymentEnvironment
+  status      DeploymentStatus  @default(PENDING)
+  config      Json?
+  logs        Json?             @default("[]")
+  metrics     Json?
+  url         String?
+
+  project     Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  startedAt   DateTime          @default(now())
+  completedAt DateTime?
+
+  @@index([projectId])
+  @@index([status])
+  @@map("deployments")
+}
+
+enum DeploymentEnvironment {
+  DEVELOPMENT
+  STAGING
+  PRODUCTION
+}
+
+enum DeploymentStatus {
+  PENDING
+  BUILDING
+  DEPLOYING
+  SUCCESS
+  FAILED
+  CANCELLED
+  ROLLING_BACK
+}
+
+// ============================================
+// Prompt Templates
+// ============================================
+
+model PromptTemplate {
+  id          String          @id @default(cuid())
+  name        String
+  description String?
+  category    PromptCategory
+  template    String
+  variables   Json?           @default("[]")
+  examples    Json?           @default("[]")
+  role        PromptRole      @default(ASSISTANT)
+  isSystem    Boolean         @default(false)
+  usage       Int             @default(0)
+  rating      Float           @default(0)
+
+  userId      String?
+  user        User?           @relation(fields: [userId], references: [id])
+
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([category])
+  @@index([userId])
+  @@map("prompt_templates")
+}
+
+enum PromptCategory {
+  ARCHITECTURE
+  API_DESIGN
+  FRONTEND
+  BACKEND
+  DATABASE
+  TESTING
+  SECURITY
+  DEPLOYMENT
+  REFACTORING
+  DOCUMENTATION
+}
+
+enum PromptRole {
+  USER
+  ASSISTANT
+  SYSTEM
+  MENTOR
+}
+
+// ============================================
+// Conversations & Memory
+// ============================================
+
+model Conversation {
+  id          String   @id @default(cuid())
+  projectId   String
+  title       String?
+  context     Json?    @default("{}")
+
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  messages    ConversationMessage[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([projectId])
+  @@map("conversations")
+}
+
+model ConversationMessage {
+  id          String       @id @default(cuid())
+  conversationId String
+  role        PromptRole
+  content     String
+  metadata    Json?        @default("{}")
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime     @default(now())
+
+  @@index([conversationId])
+  @@map("conversation_messages")
+}
+
+model ProjectMemory {
+  id          String   @id @default(cuid())
+  projectId   String
+  userId      String?
+  type        MemoryType
+  data        Json
+  confidence  Float    @default(1.0)
+
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user        User?    @relation(fields: [userId], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([type])
+  @@map("project_memories")
+}
+
+enum MemoryType {
+  PREFERENCE
+  DECISION
+  MISTAKE
+  PATTERN
+  CONTEXT
+}
+
+model ArchitectureDecision {
+  id          String   @id @default(cuid())
+  projectId   String
+  title       String
+  description String
+  context     String
+  decision    String
+  alternatives Json?   @default("[]")
+  consequences Json?   @default("[]")
+  decidedBy   String?
+
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([projectId])
+  @@map("architecture_decisions")
+}
+
+// ============================================
+// Code Review
+// ============================================
+
+model CodeReview {
+  id          String         @id @default(cuid())
+  userId      String
+  fileId      String?
+  type        ReviewType
+  severity    Severity       @default(INFO)
+  message     String
+  suggestion  String?
+  code        String?
+  status      ReviewStatus   @default(PENDING)
+  resolvedAt  DateTime?
+
+  user        User           @relation(fields: [userId], references: [id])
+
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@index([userId])
+  @@index([fileId])
+  @@map("code_reviews")
+}
+
+enum ReviewType {
+  BUG
+  SECURITY
+  PERFORMANCE
+  STYLE
+  DOCUMENTATION
+  SUGGESTION
+}
+
+enum Severity {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+  INFO
+}
+
+enum ReviewStatus {
+  PENDING
+  ACKNOWLEDGED
+  RESOLVED
+  DISMISSED
+}
