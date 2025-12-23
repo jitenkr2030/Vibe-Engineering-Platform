@@ -32,6 +32,7 @@ import { aiReviewerRoutes } from './routes/aiReviewer.routes';
 import { cicdGeneratorRoutes } from './routes/cicdGenerator.routes';
 import { architectureGeneratorRoutes } from './routes/architectureGenerator.routes';
 import { testIntelligenceRoutes } from './routes/testIntelligence.routes';
+import { billingRoutes } from './routes/billing.routes';
 import { websocketHandler } from './services/websocket';
 import { logger } from './utils/logger';
 
@@ -111,6 +112,7 @@ app.use(`${API_PREFIX}/ai/reviewer`, aiReviewerRoutes);
 app.use(`${API_PREFIX}/ai/cicd`, cicdGeneratorRoutes);
 app.use(`${API_PREFIX}/ai/architecture`, architectureGeneratorRoutes);
 app.use(`${API_PREFIX}/ai/tests`, testIntelligenceRoutes);
+app.use(`${API_PREFIX}/billing`, billingRoutes);
 
 // 404 handler
 app.use((_req: Request, res: Response) => {
