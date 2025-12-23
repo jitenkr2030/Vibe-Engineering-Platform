@@ -9,6 +9,8 @@ const nextConfig = {
       bodySizeLimit: '2mb',
     },
   },
+  // Ensure UI components are transpiled
+  transpilePackages: ['lucide-react'],
 };
 
 module.exports = nextConfig;
