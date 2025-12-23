@@ -131,25 +131,25 @@ export default function MonetizationPolicyPage() {
 
             <motion.div
               initial={{ opacity: 0, y: 20 }}
-              whileIn 1, y: 0 }}
-View={{ opacity:              viewport={{ once: true }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
-              <Card className="bg-green-50Content className="p-8">
-                  <div class">
-                <Card5xl font-bold text-green-600Name="text- border-green-200 mb-2">$0</div>
+              <Card className="bg-green-50 border-green-200">
+                <CardContent className="p-8">
+                  <div className="text-5xl font-bold text-green-600 mb-2">$0</div>
                   <div className="text-lg font-semibold mb-2">Setup Fees</div>
                   <p className="text-sm text-muted-foreground">
-                    No upfront costs to start selling your creationsContent>
+                    No upfront costs to start selling your creations
+                  </p>
+                </CardContent>
               </Card>
             </motion.div>
           </div>
         </div>
       </section>
 
-      {/* Payment
-                  </p>
-                </Card Details */}
+      {/* Payment Details */}
       <section className="py-20 px-4">
         <div className="container mx-auto max-w-4xl">
           <motion.div
@@ -161,63 +161,63 @@ View={{ opacity:              viewport={{ once: true }}
 
             <Card className="mb-8">
               <CardHeader>
-                <CardTitle className="text items-center gap--2xl flex3">
-                  <CreditCard className="h-6 w-6 text Payment Methods
+                <CardTitle className="text-2xl flex items-center gap-3">
+                  <CreditCard className="h-6 w-6 text-primary" />
+                  Payment Methods
                 </CardTitle>
--primary" />
-                 >
-              <CardContent className="prose prose-m              </CardHeaderuted-foreground max-w-none">
+              </CardHeader>
+              <CardContent className="prose prose-muted-foreground max-w-none">
                 <p className="mb-4">Creators can receive payments through:</p>
-Name="space-y-2">
-                                 <ul class <li>Stripe Connect (recommended for most creators <li>Pay)</li>
-                 Pal for business accounts</li>
-                  <li (for>Bank transfer eligible regions and amounts)</li>
+                <ul className="space-y-2">
+                  <li>Stripe Connect (recommended for most creators)</li>
+                  <li>PayPal for business accounts</li>
+                  <li>Bank wire transfer (for eligible regions and amounts)</li>
                   <li>Crypto payments (USDC on supported networks)</li>
                 </ul>
               </CardContent>
+            </Card>
+
             <Card className="mb-8">
               <CardHeader>
                 <CardTitle className="text-2xl flex items-center gap-3">
-                  <TrendingUp class</Card>
-
-            Name="h-6 w-6                  Payout Schedule
+                  <TrendingUp className="h-6 w-6 text-primary" />
+                  Payout Schedule
                 </CardTitle>
-              </CardHeader text-primary" />
->
-              <CardContent className="uted-foreground max-w-none">
-               prose prose-m="space-y-<li><strong>Standard P <ul className2">
-                   (every Monday) for balancesayouts over $100</li>
-                  <li><strong>:</strong> WeeklyMinimum</strong> $100 USD (or equivalent)</li>
-                   Payout:Processing Time:</strong> 2-5<li><strong> business days after payout request</li>
+              </CardHeader>
+              <CardContent className="prose prose-muted-foreground max-w-none">
+                <ul className="space-y-2">
+                  <li><strong>Standard Payout:</strong> Weekly (every Monday) for balances over $100</li>
+                  <li><strong>Minimum Payout:</strong> $100 USD (or equivalent)</li>
+                  <li><strong>Processing Time:</strong> 2-5 business days after payout request</li>
                   <li><strong>Currency:</strong> USD default (convert to local currency available)</li>
                 </ul>
-              by </CardContent>
+              </CardContent>
             </Card>
 
             <Card className="mb-8">
               <CardHeader>
                 <CardTitle className="text-2xl flex items-center gap-3">
-                  <Shield className="h-6 w-6 text-primary" Information
+                  <Shield className="h-6 w-6 text-primary" />
+                  Tax Information
                 </CardTitle>
-               />
-                  Tax</CardHeader>
+              </CardHeader>
               <CardContent className="prose prose-muted-foreground max-w-none">
-                <ul-y-2">
-                  <li>Creat className="spaceors are responsible and paying taxes on for reporting>
-                  <li>We provide annual their earnings</li for US-based creators earning over $600</li>
-                  <li>Non-US creators may 1099 forms need</li>
-                  <li>Platform fees are not to provide tax documentation creators</li>
- tax-deductible for>
+                <ul className="space-y-2">
+                  <li>Creators are responsible for reporting and paying taxes on their earnings</li>
+                  <li>We provide annual 1099 forms for US-based creators earning over $600</li>
+                  <li>Non-US creators may need to provide tax documentation</li>
+                  <li>Platform fees are not tax-deductible for creators</li>
+                </ul>
+              </CardContent>
             </Card>
 
             <Card className="mb-8">
-               <CardTitle class              </CardContent<CardHeader>
-               Name="text-                </ul>
-2xl">Monetization Methods </CardHeader>
+              <CardHeader>
+                <CardTitle className="text-2xl">Monetization Methods</CardTitle>
+              </CardHeader>
               <CardContent className="prose prose-muted-foreground max-w-none">
-                <p className="mb-4">Our platform:</p>
-                <ul className</CardTitle>
-              supports multiple monetization channels="space-y-2">
+                <p className="mb-4">Our platform supports multiple monetization channels:</p>
+                <ul className="space-y-2">
                   <li><strong>Subscriptions:</strong> Recurring revenue from subscribers</li>
                   <li><strong>One-time Sales:</strong> Single purchases of templates or applications</li>
                   <li><strong>Marketplace Sales:</strong> Sales through our creator marketplace</li>
@@ -229,51 +229,49 @@ Name="space-y-2">
             <Card className="mb-8">
               <CardHeader>
                 <CardTitle className="text-2xl">Refund Policy for Creators</CardTitle>
-               <CardContent className="prose prose-muted-foreground max-w-none</CardHeader>
-              className="mb-4">
-                 ">
-                <p When customers refunds, the following applies:
-                </p>
+              </CardHeader>
+              <CardContent className="prose prose-muted-foreground max-w-none">
+                <p className="mb-4">When customers request refunds, the following applies:</p>
                 <ul className="space-y-2">
-                  <li>Refunds within 30 days of purchase are request typically honored</li>Creators receive the full amount of the purchase minus platform fees</li>
-Disputes and chargebacks may affect creator>
-                  <li                  <li> ratings</li>
-                  <li>We provide tools to handle service and refunds</li>
-                customer </ul>
-                         </Card>
-          </motion.div </CardContent>
->
+                  <li>Refunds within 30 days of purchase are typically honored</li>
+                  <li>Creators receive the full amount of the purchase minus platform fees</li>
+                  <li>Disputes and chargebacks may affect creator ratings</li>
+                  <li>We provide tools to handle customer service and refunds</li>
+                </ul>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
       </section>
 
       {/* CTA */}
-      <section>
-        </div className="py-20 px-4 bg-primary text-primary-foreground">
+      <section className="py-20 px-4 bg-primary text-primary-foreground">
         <div className="container mx-auto text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-            while: 1, }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">InView={{ opacity y: 0Ready to Start Earning?</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Start Earning?</h2>
             <p className="text-xl opacity-90 mb-8 max-w-2xl mx-auto">
-              Join thousands of creators who are building and monetizing their AI </p>
-            <Link-powered applications.
-            href="/auth/register">
-              <Button size="lg" variant="secondarygap-2">
+              Join thousands of creators who are building and monetizing their AI-powered applications.
+            </p>
+            <Link href="/auth/register">
+              <Button size="lg" variant="secondary" className="gap-2">
                 Create Your Account
-                <ArrowRight class" className="Name="h-4 w-4</Button>
-            " />
-              </motion.div>
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </Link>
+          </motion.div>
         </div>
-     </Link>
-           <footer className="border-t py-12 px-4">
-        <div className=" </section>
+      </section>
 
-     container mx-auto">
- {/* Footer */}
-               <div className="grid md:grid-cols-4 gap-<div>
-              <div className="8">
-            flex items-center gap-2 mb-4">
+      {/* Footer */}
+      <footer className="border-t py-12 px-4">
+        <div className="container mx-auto">
+          <div className="grid md:grid-cols-4 gap-8">
+            <div>
+              <div className="flex items-center gap-2 mb-4">
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
                   <Code2 className="h-4 w-4 text-primary-foreground" />
                 </div>

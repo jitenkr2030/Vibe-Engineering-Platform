@@ -1,6 +1,6 @@
 'use client';
 
-import 'framer-motion { motion } from';
+import { motion } from 'framer-motion';
 import Link from 'next/link';
 import {
   Code2,
@@ -27,11 +27,12 @@ import {
   Database,
   Cloud,
   Container,
-  Shield GitBranch,
- Check,
+  GitBranch,
+  Check,
   Clock,
   Target,
   Lightbulb,
+  ShieldCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -86,8 +87,8 @@ const coreFeatures = [
     features: [
       { name: 'CI/CD pipeline generation', icon: GitBranch },
       { name: 'Docker containerization', icon: Container },
-      { name: 'Cloud deployment Cloud },
-      { name: 'Infrastructure scripts', icon: as code', icon: Database },
+      { name: 'Cloud deployment', icon: Cloud },
+      { name: 'Infrastructure as code', icon: Database },
     ],
   },
 ];
@@ -95,8 +96,8 @@ const coreFeatures = [
 const integrations = [
   { name: 'GitHub', icon: Github, description: 'Full GitHub integration with PR reviews and actions' },
   { name: 'VS Code', icon: Code2, description: 'Native VS Code extension' },
-  { name: 'Slack', icon: Globe, description: '' },
-  { name: 'Jira', icon:Team notifications and commands BookOpen, description: 'Project tracking sync' },
+  { name: 'Slack', icon: Globe, description: 'Team notifications and commands' },
+  { name: 'Jira', icon: BookOpen, description: 'Project tracking sync' },
   { name: 'Figma', icon: Layers, description: 'Design-to-code import' },
   { name: 'Docker', icon: Container, description: 'Container orchestration' },
 ];
@@ -107,12 +108,12 @@ export default function ProductPage() {
       {/* Navigation */}
       <nav className="fixed top-0 w-full z-50 border-b border-border/40 bg-background/80 backdrop-blur-xl">
         <div className="container mx-auto px-4">
-          <div className="flex h-16">
+          <div className="flex h-16 items-center justify-between">
             <Link href="/" className="flex items-center gap-2">
- items-center justify-between              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-                <Code2 className="h-5 w-5 text-primary-foreground">
-              <span />
-              </div className="text-xl font-bold">Vibe Engineering</span>
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
+                <Code2 className="h-5 w-5 text-primary-foreground" />
+              </div>
+              <span className="text-xl font-bold">Vibe Engineering</span>
             </Link>
 
             <div className="hidden md:flex items-center gap-6">
@@ -120,14 +121,14 @@ export default function ProductPage() {
               <Link href="/features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Features</Link>
               <Link href="/pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Pricing</Link>
               <Link href="/documentation" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Documentation</Link>
-            <div className </div>
+            </div>
 
-           ="flex items-center gap-3">
+            <div className="flex items-center gap-3">
               <Link href="/auth/login">
                 <Button variant="ghost">Sign In</Button>
               </Link>
-="/auth/register">
-              <Link href                <Button>Get Started</Button>
+              <Link href="/auth/register">
+                <Button>Get Started</Button>
               </Link>
             </div>
           </div>
@@ -136,14 +137,14 @@ export default function ProductPage() {
 
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-4">
-        <div className="container mx-auto text<motion.div
-           -center">
-           initial={{ opacity: 0, y: 20 }}
+        <div className="container mx-auto text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <Badge variant="secondary"-8">
-              <Sparkles class className="mbName="h-4 w-4 mr-1" />
+            <Badge variant="secondary" className="mb-8">
+              <Sparkles className="h-4 w-4 mr-1" />
               AI-Native Development Platform
             </Badge>
 
@@ -156,17 +157,17 @@ export default function ProductPage() {
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-10">
               Vibe Engineering is an AI-native software engineering platform that helps you build,
               test, secure, deploy, and monetize your applications with unprecedented speed and quality.
-            <div className="flex flex            </p>
+            </p>
 
--col sm:flex-row items-center justify-center gap-4">
-              <Link">
-                <Button href="/auth/register size="lg" className="gap-2">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Link href="/auth/register">
+                <Button size="lg" className="gap-2">
                   Start Building Free
                   <ArrowRight className="h-4 w-4" />
                 </Button>
+              </Link>
               <Link href="/features">
-                 </Link>
-             <Button size="lg" variant="outline">
+                <Button size="lg" variant="outline">
                   Explore Features
                 </Button>
               </Link>
@@ -176,13 +177,13 @@ export default function ProductPage() {
       </section>
 
       {/* Product Highlights */}
-      <section className="py-20-muted/30">
-        <div px-4 bg className="container mx-auto">
+      <section className="py-20 px-4 bg-muted/30">
+        <div className="container mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 once: true }}
- }}
-            viewport={{            className="text-center mb-16"
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
           >
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
               Everything You Need to Build Great Software
@@ -196,8 +197,8 @@ export default function ProductPage() {
             {productHighlights.map((item, index) => (
               <motion.div
                 key={item.title}
-: 0, y: 20View={{ opacity:                initial={{ opacity }}
-                whileIn 1, y: 0 }}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
               >
@@ -214,20 +215,20 @@ export default function ProductPage() {
         </div>
       </section>
 
-      {/* Core Features Grid className="py-20 px-4">
-         */}
-      <section<div className="container mx-auto">
+      {/* Core Features Grid */}
+      <section className="py-20 px-4">
+        <div className="container mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 once: true }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 }}
-            viewport={{ className="text-3xl md:text-4xl font-bold mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
               Comprehensive Development Toolchain
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              From code generation to deployment, we've got every step of your workflow covered.
+              From code generation to deployment, we have got every step of your workflow covered.
             </p>
           </motion.div>
 
@@ -240,14 +241,14 @@ export default function ProductPage() {
                     <motion.div
                       key={feature.name}
                       initial={{ opacity: 0, y: 20 }}
-                      while: 1,InView={{ opacity y: 0 }}
+                      whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
-: 0.                      transition={{ duration5, delay: categoryIndex * 0.1 + featureIndex * 0.05 }}
+                      transition={{ duration: 0.5, delay: categoryIndex * 0.1 + featureIndex * 0.05 }}
                     >
                       <Card className="hover:border-primary/50 transition-colors cursor-pointer">
-                       Name="pt <CardContent class-6">
+                        <CardContent className="pt-6">
                           <div className="flex items-start gap-3">
- className="h-5 w-                            <feature.icon5 text-primary mt-0.5 shrink-0" />
+                            <feature.icon className="h-5 w-5 text-primary mt-0.5 shrink-0" />
                             <span className="text-sm font-medium">{feature.name}</span>
                           </div>
                         </CardContent>
@@ -279,10 +280,10 @@ export default function ProductPage() {
           </motion.div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-4xl mx-auto">
-            {integrations.map <motion.div
+            {integrations.map((integration, index) => (
+              <motion.div
                 key={integration.name}
-                initial((integration, index) => (
-             ={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
@@ -290,11 +291,11 @@ export default function ProductPage() {
                 <Card className="hover:border-primary/50 transition-colors">
                   <CardHeader>
                     <div className="flex items-center gap-3">
-                      <integration.icon-6 w-6 text-primary" />
-                      <CardTitle className=" className="htext-lg">{integration>
+                      <integration.icon className="h-6 w-6 text-primary" />
+                      <CardTitle className="text-lg">{integration.name}</CardTitle>
                     </div>
                     <CardDescription>{integration.description}</CardDescription>
-.name}</CardTitle                  </CardHeader>
+                  </CardHeader>
                 </Card>
               </motion.div>
             ))}
@@ -316,10 +317,10 @@ export default function ProductPage() {
                 key={stat.label}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{                transition={{ duration: 0. once: true }}
-5, delay: index * 0 >
-                <div className="text.1 }}
-             -4xl md:text-5xl font-bold text-primary mb-2">{stat.value}</div>
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+              >
+                <div className="text-4xl md:text-5xl font-bold text-primary mb-2">{stat.value}</div>
                 <div className="text-sm text-muted-foreground">{stat.label}</div>
               </motion.div>
             ))}
@@ -327,13 +328,13 @@ export default function ProductPage() {
         </div>
       </section>
 
-           <section className="py-20 px-4 {/* CTA Section */}
- bg-primary text-primary-foreground">
+      {/* CTA Section */}
+      <section className="py-20 px-4 bg-primary text-primary-foreground">
         <div className="container mx-auto text-center">
           <motion.div
-: 0, y: 20            initial={{ opacityView={{ opacity: 1, y: 0 }}
-            viewport={{ once }}
-            whileIn: true }}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
           >
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
               Ready to Transform Your Development?
@@ -342,8 +343,8 @@ export default function ProductPage() {
               Join thousands of developers who are already building with Vibe Engineering faster and better.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              /register">
-                <Link href="/auth<Button size="lg" variant="secondary" className="gap-2">
+              <Link href="/auth/register">
+                <Button size="lg" variant="secondary" className="gap-2">
                   Get Started Free
                   <ArrowRight className="h-4 w-4" />
                 </Button>
@@ -385,8 +386,8 @@ export default function ProductPage() {
             </div>
 
             <div>
-              <h4 className="font-semibold mb</h4>
--4">Company              <ul className="space-y-2 text-sm text-muted-foreground">
+              <h4 className="font-semibold mb-4">Company</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
                 <li><Link href="/company/about" className="hover:text-foreground">About</Link></li>
                 <li><Link href="/company/blog" className="hover:text-foreground">Blog</Link></li>
                 <li><Link href="/company/careers" className="hover:text-foreground">Careers</Link></li>
@@ -396,11 +397,11 @@ export default function ProductPage() {
 
             <div>
               <h4 className="font-semibold mb-4">Legal</h4>
-              <ul-y-2 text className="space-sm text-muted-foreground">
+              <ul className="space-y-2 text-sm text-muted-foreground">
                 <li><Link href="/legal/privacy" className="hover:text-foreground">Privacy</Link></li>
                 <li><Link href="/legal/terms" className="hover:text-foreground">Terms</Link></li>
-                <li><Link href="/legal/monetization-policy" className="hover:text-foreground">Monet></li>
-               ization Policy</Link <li><Link href="/legal/security" className="hover:text-foreground">Security</Link></li>
+                <li><Link href="/legal/monetization-policy" className="hover:text-foreground">Monetization Policy</Link></li>
+                <li><Link href="/legal/security" className="hover:text-foreground">Security</Link></li>
               </ul>
             </div>
           </div>
@@ -409,11 +410,11 @@ export default function ProductPage() {
 
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-muted-foreground">
-              © 2024 Vibe reserved.
-             Engineering. All rights</p>
+              © 2024 Vibe Engineering. All rights reserved.
+            </p>
             <div className="flex items-center gap-4">
-              <a href="#" className="text-muted-foreground">
-                <Github className="h hover:text-foreground-5 w-5" />
+              <a href="#" className="text-muted-foreground hover:text-foreground">
+                <Github className="h-5 w-5" />
               </a>
             </div>
           </div>

@@ -111,8 +111,8 @@ export default function CareersPage() {
             <div className="hidden md:flex items-center gap-6">
               <Link href="/product" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Product</Link>
               <Link href="/features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Features</Link>
-              <Link href="/="text-sm text-muted-foreground hover:text-foreground transition-colors">Pricing</Link>
-              <Link hrefpricing" className="/company/about" className="text-sm text-foreground font-medium">Company</Link>
+              <Link href="/pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Pricing</Link>
+              <Link href="/company/about" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Company</Link>
             </div>
 
             <div className="flex items-center gap-3">
@@ -301,7 +301,7 @@ export default function CareersPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Dont See the Right Fit?</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Do not See the Right Fit?</h2>
             <p className="text-xl opacity-90 mb-8 max-w-2xl mx-auto">
               We are always looking for talented people. Send us your resume and we will reach out when a suitable position opens up.
             </p>
