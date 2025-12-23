@@ -3,6 +3,7 @@ export { apiClient } from './api';
 export { default as projectService, type Project, type CreateProjectParams, type ProjectMetrics } from './project';
 export { default as fileStorageService, type FileInfo, type DirectoryContents, type UploadProgress, type FileSearchParams, type FileSearchResult } from './fileStorage.service';
 export { default as deploymentService, type DeploymentConfig, type DeploymentStatus, type ContainerMetrics, type LogStreamParams, type RollbackParams, type DeployParams } from './deployment.service';
+export { default as aiService, type AIReviewResult, type PipelineConfig, type GeneratedPipeline, type ArchitectureGenerationParams, type TestGenerationParams, type AIConfig } from './ai.service';
 
 // WebSocket Services
 export { 

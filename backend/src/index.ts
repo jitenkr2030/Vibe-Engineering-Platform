@@ -27,6 +27,11 @@ import { analyticsRoutes } from './routes/analytics.routes';
 import { templatesRoutes } from './routes/templates.routes';
 import { fileStorageRoutes } from './routes/fileStorage.routes';
 import { deploymentsRoutes } from './routes/deployments.routes';
+import { aiRoutes } from './routes/ai.routes';
+import { aiReviewerRoutes } from './routes/aiReviewer.routes';
+import { cicdGeneratorRoutes } from './routes/cicdGenerator.routes';
+import { architectureGeneratorRoutes } from './routes/architectureGenerator.routes';
+import { testIntelligenceRoutes } from './routes/testIntelligence.routes';
 import { websocketHandler } from './services/websocket';
 import { logger } from './utils/logger';
 
@@ -101,6 +106,11 @@ app.use(`${API_PREFIX}/analytics`, analyticsRoutes);
 app.use(`${API_PREFIX}/templates`, templatesRoutes);
 app.use(`${API_PREFIX}/storage`, fileStorageRoutes);
 app.use(`${API_PREFIX}/deploy`, deploymentsRoutes);
+app.use(`${API_PREFIX}/ai`, aiRoutes);
+app.use(`${API_PREFIX}/ai/reviewer`, aiReviewerRoutes);
+app.use(`${API_PREFIX}/ai/cicd`, cicdGeneratorRoutes);
+app.use(`${API_PREFIX}/ai/architecture`, architectureGeneratorRoutes);
+app.use(`${API_PREFIX}/ai/tests`, testIntelligenceRoutes);
 
 // 404 handler
 app.use((_req: Request, res: Response) => {
