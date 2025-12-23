@@ -1,4 +1,6 @@
 /** @type {import('next').NextConfig} */
+const path = require('path');
+
 const nextConfig = {
   reactStrictMode: true,
   images: {
@@ -12,10 +14,10 @@ const nextConfig = {
   // Ensure UI components are transpiled
   transpilePackages: ['lucide-react'],
   // Explicit webpack configuration for path aliases
-  webpack: (config, { defaultLoaders }) => {
+  webpack: (config, options) => {
     config.resolve.alias = {
       ...config.resolve.alias,
-      '@': require('path').resolve(__dirname, './src'),
+      '@': path.resolve(__dirname, './src'),
     };
     return config;
   },
