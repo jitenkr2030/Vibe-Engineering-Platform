@@ -690,27 +690,27 @@ export default function LandingPage() {
                 <li><Link href="#features" className="hover:text-foreground">Features</Link></li>
                 <li><Link href="#pricing" className="hover:text-foreground">Pricing</Link></li>
                 <li><Link href="#monetization" className="hover:text-foreground">Monetization</Link></li>
-                <li><a href="#" className="hover:text-foreground">Documentation</a></li>
+                <li><Link href="/documentation" className="hover:text-foreground">Documentation</Link></li>
               </ul>
             </div>
 
             <div>
               <h4 className="font-semibold mb-4">Company</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground">About</a></li>
-                <li><a href="#" className="hover:text-foreground">Blog</a></li>
-                <li><a href="#" className="hover:text-foreground">Careers</a></li>
-                <li><a href="#" className="hover:text-foreground">Contact</a></li>
+                <li><Link href="/company/about" className="hover:text-foreground">About</Link></li>
+                <li><Link href="/company/blog" className="hover:text-foreground">Blog</Link></li>
+                <li><Link href="/company/careers" className="hover:text-foreground">Careers</Link></li>
+                <li><Link href="/company/contact" className="hover:text-foreground">Contact</Link></li>
               </ul>
             </div>
 
             <div>
               <h4 className="font-semibold mb-4">Legal</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground">Privacy</a></li>
-                <li><a href="#" className="hover:text-foreground">Terms</a></li>
-                <li><a href="#" className="hover:text-foreground">Monetization Policy</a></li>
-                <li><a href="#" className="hover:text-foreground">Security</a></li>
+                <li><Link href="/legal/privacy" className="hover:text-foreground">Privacy</Link></li>
+                <li><Link href="/legal/terms" className="hover:text-foreground">Terms</Link></li>
+                <li><Link href="/legal/monetization-policy" className="hover:text-foreground">Monetization Policy</Link></li>
+                <li><Link href="/legal/security" className="hover:text-foreground">Security</Link></li>
               </ul>
             </div>
           </div>
