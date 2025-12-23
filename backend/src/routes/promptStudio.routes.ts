@@ -322,9 +322,8 @@ router.post(
   '/memory/:projectId/summarize',
   authenticate,
   asyncHandler(async (req, res: Response) => {
-    const { projectId } = const summary = await projectMemoryService.auto req.params;
-
-   Summarize(projectId);
+    const { projectId } = req.params;
+    const summary = await projectMemoryService.autoSummarize(projectId);
 
     res.json({
       success: true,
