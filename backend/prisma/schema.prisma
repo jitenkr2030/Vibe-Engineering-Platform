@@ -139,7 +139,7 @@ model Project {
   architecture Json?
 
   // Settings stored as JSON
-            @default(" settings    Json?{}")
+  settings    Json?   @default("{}")
 
   // Metrics stored as JSON
   metrics     Json?           @default("{}")
