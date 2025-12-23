@@ -1,0 +1,154 @@
+# Loki Helm Chart Values
+# Configure Loki log aggregation for Vibe Platform
+
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+
+# Loki Configuration
+loki:
+  replicas: ${replicas}
+  persistence:
+    enabled: true
+    storageClassName: gp3
+    size: 10Gi
+
+  # Retention configuration
+  compactor:
+    retention_enabled: true
+    retention_delete_delay: 2h
+    retention_delete_worker_count: 150
+
+  # Storage configuration
+  storage:
+    type: s3
+    s3:
+      bucket: ${s3_bucket}
+      region: ${s3_region}
+      endpoint: ""
+      s3ForcePathStyle: false
+      accessKeyIdSecret:
+        name: aws-credentials-secret
+        key: access-key-id
+      secretAccessKeySecret:
+        name: aws-credentials-secret
+        key: secret-access-key
+      insecure: false
+
+  # Limits configuration
+  limits_config:
+    enforce_metric_name: false
+    reject_old_samples: true
+    reject_old_samples_max_age: 168h
+    max_cache_freshness_per_query: 10m
+
+  # Chunk optimization
+  chunk_store_config:
+    max_look_back_period: 672h
+
+  # Query scheduler
+  query_scheduler:
+    max_outstanding_requests_per_tenant: 4096
+
+# Loki Gateway (nginx)
+gateway:
+  enabled: true
+  replicas: 1
+  nginxConfig: |
+    worker_processes auto;
+    error_log /var/log/nginx/error.log;
+    pid /tmp/nginx.pid;
+
+    events {
+        worker_connections 4096;
+    }
+
+    http {
+        client_body_temp_path /tmp/client_temp;
+        proxy_temp_path /tmp/proxy_temp;
+        fastcgi_temp_path /tmp/fastcgi_temp;
+        uwsgi_temp_path /tmp/uwsgi_temp;
+        scgi_temp_path /tmp/scgi_temp;
+
+        proxy_set_header X-Scope-OrgID $organization;
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Real-IP $remote_addr;
+
+        server {
+            listen 8080;
+            location / {
+                proxy_pass http://loki:3100;
+            }
+        }
+    }
+
+# Loki Read Pods
+read:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+# Loki Write Pods
+write:
+  replicas: 2
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+
+# Loki Backend Pods
+backend:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+# Service Account
+serviceAccount:
+  create: true
+  name: loki
+
+# Service Monitor for Loki
+serviceMonitor:
+  enabled: true
+  metrics:
+    interval: 1m
+    timeout: 30s
+
+# Pod configuration
+pod:
+  securityContext:
+    runAsUser: 1000
+    runAsNonRoot: true
+    fsGroup: 1000
+
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/name: loki
+            topologyKey: kubernetes.io/hostname
+
+# Network policy
+networkPolicy:
+  enabled: true
+  allowExternal: false
+
+# RBAC configuration
+rbac:
+  create: true

@@ -1,0 +1,35 @@
+# Kubernetes Namespace Configuration for Vibe Platform
+# Defines namespaces for production workloads, monitoring, and CI/CD
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: vibe-production
+  labels:
+    app.kubernetes.io/name: vibe-platform
+    app.kubernetes.io/environment: production
+    app.kubernetes.io/component: application
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: monitoring
+  labels:
+    app.kubernetes.io/name: vibe-platform
+    app.kubernetes.io/component: monitoring
+    app.kubernetes.io/part-of: observability
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kube-system
+  labels:
+    kubernetes.io/metadata.name: kube-system
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: default
+  labels:
+    app.kubernetes.io/name: vibe-platform

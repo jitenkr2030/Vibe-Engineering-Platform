@@ -1,0 +1,132 @@
+# Kubernetes Ingress Configuration for Vibe Platform
+# Configures routing for frontend and API with TLS termination
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: vibe-ingress
+  namespace: vibe-production
+  labels:
+    app.kubernetes.io/name: vibe
+    app.kubernetes.io/component: ingress
+  annotations:
+    # AWS Load Balancer Controller annotations
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/healthcheck-path: /health
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: "30"
+    alb.ingress.kubernetes.io/healthcheck-timeout-seconds: "5"
+    alb.ingress.kubernetes.io/healthy-threshold-count: "2"
+    alb.ingress.kubernetes.io/unhealthy-threshold-count: "5"
+
+    # Security annotations
+    alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS13-1-2-2021-06
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: "true"
+    alb.ingress.kubernetes.io/inbound-cidrs: "0.0.0.0/0"
+
+    # WAF integration (optional)
+    # alb.ingress.kubernetes.io/wafv2-acl-arn: arn:aws:wafv2:region:account:regional/webacl/name
+
+    # Rate limiting (optional)
+    # alb.ingress.kubernetes.io/rate-limit: "1000"
+
+    # External DNS annotation
+    external-dns.alpha.kubernetes.io/hostname: vibe.dev,www.vibe.dev,api.vibe.dev
+    external-dns.alpha.kubernetes.io/ttl: "60"
+spec:
+  ingressClassName: alb
+  rules:
+    # Frontend rule
+    - host: www.vibe.dev
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: vibe-frontend
+                port:
+                  number: 3000
+
+    # API rule
+    - host: api.vibe.dev
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: vibe-backend
+                port:
+                  number: 3001
+
+    # Root domain - redirect to www
+    - host: vibe.dev
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: vibe-frontend
+                port:
+                  number: 3000
+
+  tls:
+    - hosts:
+        - vibe.dev
+        - www.vibe.dev
+        - api.vibe.dev
+      secretName: vibe-tls
+
+---
+apiVersion: networking.k8s.io/v1
+kind: IngressClass
+metadata:
+  name: alb
+  annotations:
+    ingressclass.kubernetes.io/is-default-class: "true"
+spec:
+  controller: kubernetes.io/aws-load-balancer-controller
+
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+  labels:
+    app.kubernetes.io/name: vibe
+    app.kubernetes.io/component: certificates
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: admin@vibe.dev
+    privateKeySecretRef:
+      name: letsencrypt-prod-account-key
+    solvers:
+      - http01:
+          ingress:
+            class: alb
+        selector: {}
+
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: vibe-tls
+  namespace: vibe-production
+  labels:
+    app.kubernetes.io/name: vibe
+    app.kubernetes.io/component: certificates
+spec:
+  secretName: vibe-tls
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  dnsNames:
+    - vibe.dev
+    - www.vibe.dev
+    - api.vibe.dev

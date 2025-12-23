@@ -1,0 +1,165 @@
+# Kubernetes RBAC Configuration for Vibe Platform
+# Defines service accounts and roles for application components
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vibe-backend
+  namespace: vibe-production
+  labels:
+    app.kubernetes.io/name: vibe
+    app.kubernetes.io/component: backend
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::ACCOUNT_ID:role/vibe-backend-role
+secrets:
+  - name: vibe-backend-token
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vibe-frontend
+  namespace: vibe-production
+  labels:
+    app.kubernetes.io/name: vibe
+    app.kubernetes.io/component: frontend
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::ACCOUNT_ID:role/vibe-frontend-role
+secrets:
+  - name: vibe-frontend-token
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vibe-monitoring
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: vibe
+    app.kubernetes.io/component: monitoring
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::ACCOUNT_ID:role/vibe-monitoring-role
+secrets:
+  - name: vibe-monitoring-token
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: vibe-backend
+  namespace: vibe-production
+  labels:
+    app.kubernetes.io/name: vibe
+    app.kubernetes.io/component: backend
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "pods/log"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["configmaps", "secrets"]
+    verbs: ["get"]
+  - apiGroups: ["apps"]
+    resources: ["replicasets"]
+    verbs: ["get", "list", "watch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: vibe-backend
+  namespace: vibe-production
+  labels:
+    app.kubernetes.io/name: vibe
+    app.kubernetes.io/component: backend
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: vibe-backend
+subjects:
+  - kind: ServiceAccount
+    name: vibe-backend
+    namespace: vibe-production
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: vibe-monitoring
+  labels:
+    app.kubernetes.io/name: vibe
+    app.kubernetes.io/component: monitoring
+rules:
+  - apiGroups: [""]
+    resources: ["nodes", "nodes/proxy", "services", "endpoints", "pods", "pods/log"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["configmaps", "secrets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["daemonsets", "deployments", "replicasets", "statefulsets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["autoscaling"]
+    resources: ["horizontalpodautoscalers"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses", "networkpolicies"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["metrics.k8s.io"]
+    resources: ["pods", "nodes"]
+    verbs: ["get", "list", "watch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: vibe-monitoring
+  labels:
+    app.kubernetes.io/name: vibe
+    app.kubernetes.io/component: monitoring
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: vibe-monitoring
+subjects:
+  - kind: ServiceAccount
+    name: vibe-monitoring
+    namespace: monitoring
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: external-secrets
+  namespace: vibe-production
+  labels:
+    app.kubernetes.io/name: vibe
+    app.kubernetes.io/component: secrets
+rules:
+  - apiGroups: ["external-secrets.io"]
+    resources: ["externalsecrets", "secretstores"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["create", "update", "delete"]
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "list", "watch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: external-secrets
+  namespace: vibe-production
+  labels:
+    app.kubernetes.io/name: vibe
+    app.kubernetes.io/component: secrets
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: external-secrets
+subjects:
+  - kind: ServiceAccount
+    name: external-secrets
+    namespace: kube-system
