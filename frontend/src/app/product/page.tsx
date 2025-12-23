@@ -28,7 +28,6 @@ import {
   Cloud,
   Container,
   GitBranch,
-  Check,
   Clock,
   Target,
   Lightbulb,
