@@ -1,8 +1,8 @@
 {
-  "buildCommand": "npm install && npm run build",
+  "buildCommand": "cd frontend && npm install && npm run build",
   "outputDirectory": ".next",
   "framework": "nextjs",
-  "installCommand": "npm install",
+  "installCommand": "cd frontend && npm install",
   "devCommand": "npm run dev",
   "github": {
     "enabled": true,
