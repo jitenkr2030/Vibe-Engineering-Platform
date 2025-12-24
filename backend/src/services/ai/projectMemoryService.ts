@@ -1,4 +1,7 @@
+import { PrismaClient, MemoryType } from '@prisma/client';
 import { logger } from '../utils/logger';
+
+const prisma = new PrismaClient();
 
 export interface ConversationMessage {
   role: 'user' | 'assistant' | 'system';
@@ -21,17 +24,23 @@ export interface ProjectMemory {
   createdAt: Date;
 }
 
-export interface MemorySearchInput {
+export interface MemoryEntry {
+  id: string;
   projectId: string;
-  limit?: number;
-  includeSystem?: boolean;
+  type: MemoryType;
+  content: string;
+  embedding?: number[];
+  metadata: Record<string, unknown>;
+  confidence: number;
+  createdAt: Date;
 }
 
-export interface UpdateMemoryInput {
-  projectId: string;
-  messages?: ConversationMessage[];
-  contextSummary?: string;
-  systemPrompt?: string;
+export interface SemanticSearchResult {
+  id: string;
+  content: string;
+  type: MemoryType;
+  score: number;
+  metadata: Record<string, unknown>;
 }
 
 export interface ContextBuildResult {
@@ -42,31 +51,62 @@ export interface ContextBuildResult {
   summary?: string;
 }
 
+export interface UpdateMemoryInput {
+  projectId: string;
+  messages?: ConversationMessage[];
+  contextSummary?: string;
+  systemPrompt?: string;
+}
+
 export const MAX_CONTEXT_TOKENS = 60000;
 export const MAX_HISTORY_MESSAGES = 50;
 export const AUTO_SUMMARY_THRESHOLD = 40000;
 
 export class ProjectMemoryService {
-  private memoryStore: Map<string, ProjectMemory> = new Map();
+  private inMemoryStore: Map<string, ProjectMemory> = new Map();
+
+  constructor() {
+    logger.info('ProjectMemoryService initialized with database persistence');
+  }
 
   /**
    * Get or create memory for a project
    */
   async getOrCreate(projectId: string): Promise<ProjectMemory> {
-    let memory = this.memoryStore.get(projectId);
+    let memory = this.inMemoryStore.get(projectId);
     
     if (!memory) {
-      memory = {
-        id: crypto.randomUUID(),
-        projectId,
-        conversationHistory: [],
-        contextSummary: '',
-        systemPrompt: this.getDefaultSystemPrompt(),
-        lastUpdated: new Date(),
-        createdAt: new Date(),
-      };
-      this.memoryStore.set(projectId, memory);
-      logger.debug('Created new project memory', { projectId });
+      // Try to load from database
+      const dbMemory = await prisma.projectMemory.findFirst({
+        where: { projectId },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      if (dbMemory) {
+        memory = {
+          id: dbMemory.id,
+          projectId,
+          conversationHistory: [],
+          contextSummary: (dbMemory.data as any)?.contextSummary || '',
+          systemPrompt: this.getDefaultSystemPrompt(),
+          lastUpdated: dbMemory.updatedAt,
+          createdAt: dbMemory.createdAt,
+        };
+        this.inMemoryStore.set(projectId, memory);
+        logger.debug('Loaded project memory from database', { projectId });
+      } else {
+        memory = {
+          id: crypto.randomUUID(),
+          projectId,
+          conversationHistory: [],
+          contextSummary: '',
+          systemPrompt: this.getDefaultSystemPrompt(),
+          lastUpdated: new Date(),
+          createdAt: new Date(),
+        };
+        this.inMemoryStore.set(projectId, memory);
+        logger.debug('Created new project memory', { projectId });
+      }
     }
 
     return memory;
@@ -76,18 +116,38 @@ export class ProjectMemoryService {
    * Get memory for a project
    */
   async get(projectId: string): Promise<ProjectMemory | null> {
-    const memory = this.memoryStore.get(projectId);
-    return memory || null;
+    const memory = this.inMemoryStore.get(projectId);
+    
+    if (!memory) {
+      const dbMemory = await prisma.projectMemory.findFirst({
+        where: { projectId },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      if (dbMemory) {
+        return {
+          id: dbMemory.id,
+          projectId,
+          conversationHistory: [],
+          contextSummary: (dbMemory.data as any)?.contextSummary || '',
+          systemPrompt: this.getDefaultSystemPrompt(),
+          lastUpdated: dbMemory.updatedAt,
+          createdAt: dbMemory.createdAt,
+        };
+      }
+      return null;
+    }
+
+    return memory;
   }
 
   /**
-   * Update project memory with new messages
+   * Update project memory with new messages and persist to database
    */
   async update(input: UpdateMemoryInput): Promise<ProjectMemory> {
     let memory = await this.getOrCreate(input.projectId);
 
     if (input.messages && input.messages.length > 0) {
-      // Add new messages to history
       memory.conversationHistory = [
         ...memory.conversationHistory,
         ...input.messages.map(m => ({
@@ -96,7 +156,6 @@ export class ProjectMemoryService {
         })),
       ];
 
-      // Trim history if it exceeds maximum
       if (memory.conversationHistory.length > MAX_HISTORY_MESSAGES) {
         memory.conversationHistory = memory.conversationHistory.slice(-MAX_HISTORY_MESSAGES);
       }
@@ -111,7 +170,10 @@ export class ProjectMemoryService {
     }
 
     memory.lastUpdated = new Date();
-    this.memoryStore.set(input.projectId, memory);
+    this.inMemoryStore.set(input.projectId, memory);
+
+    // Persist to database
+    await this.persistToDatabase(input.projectId, memory);
 
     logger.debug('Updated project memory', { 
       projectId: input.projectId, 
@@ -119,6 +181,39 @@ export class ProjectMemoryService {
     });
 
     return memory;
+  }
+
+  /**
+   * Persist memory to database
+   */
+  private async persistToDatabase(projectId: string, memory: ProjectMemory): Promise<void> {
+    try {
+      await prisma.projectMemory.upsert({
+        where: { id: memory.id },
+        create: {
+          id: memory.id,
+          projectId,
+          userId: null,
+          type: 'CONTEXT' as MemoryType,
+          data: {
+            conversationHistory: memory.conversationHistory,
+            contextSummary: memory.contextSummary,
+            systemPrompt: memory.systemPrompt,
+          },
+          confidence: 1.0,
+        },
+        update: {
+          data: {
+            conversationHistory: memory.conversationHistory,
+            contextSummary: memory.contextSummary,
+            systemPrompt: memory.systemPrompt,
+          },
+          updatedAt: new Date(),
+        },
+      });
+    } catch (error) {
+      logger.error('Failed to persist memory to database', { projectId, error });
+    }
   }
 
   /**
@@ -142,12 +237,12 @@ export class ProjectMemoryService {
     memory.conversationHistory.push(message);
     memory.lastUpdated = new Date();
 
-    // Check if we should auto-summarize
     if (this.estimateTokenCount(memory.conversationHistory) > AUTO_SUMMARY_THRESHOLD) {
       await this.autoSummarize(projectId);
     }
 
-    this.memoryStore.set(projectId, memory);
+    this.inMemoryStore.set(projectId, memory);
+    await this.persistToDatabase(projectId, memory);
     
     logger.debug('Added message to project memory', { projectId, role });
     
@@ -163,14 +258,22 @@ export class ProjectMemoryService {
     
     let context = `## System Context\n${effectiveSystemPrompt}\n\n`;
     
-    // Add context summary if available
     if (memory.contextSummary) {
       context += `## Project Context Summary\n${memory.contextSummary}\n\n`;
     }
 
-    // Add conversation history
+    // Add learned patterns and preferences
+    const learnedPatterns = await this.getLearnedPatterns(projectId);
+    if (learnedPatterns.length > 0) {
+      context += `## Learned Patterns & Preferences\n`;
+      for (const pattern of learnedPatterns.slice(0, 5)) {
+        context += `- ${pattern}\n`;
+      }
+      context += '\n';
+    }
+
     context += `## Conversation History\n`;
-    const recentMessages = memory.conversationHistory.slice(-20); // Last 20 messages
+    const recentMessages = memory.conversationHistory.slice(-20);
     
     for (const msg of recentMessages) {
       const roleLabel = msg.role === 'user' ? 'Human' : 'Assistant';
@@ -180,7 +283,6 @@ export class ProjectMemoryService {
     const tokenCount = this.estimateTokenCount(context);
     const wasTruncated = tokenCount > MAX_CONTEXT_TOKENS;
 
-    // If context is too long, truncate from the middle
     if (wasTruncated) {
       context = this.truncateContext(context, MAX_CONTEXT_TOKENS);
     }
@@ -191,6 +293,114 @@ export class ProjectMemoryService {
       messagesUsed: recentMessages.length,
       wasTruncated,
     };
+  }
+
+  /**
+   * Get learned patterns and preferences from database
+   */
+  async getLearnedPatterns(projectId: string): Promise<string[]> {
+    try {
+      const memories = await prisma.projectMemory.findMany({
+        where: { 
+          projectId,
+          type: { in: ['PREFERENCE', 'PATTERN', 'MISTAKE'] },
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+      });
+
+      return memories.map(m => {
+        const data = m.data as any;
+        return data?.pattern || data?.preference || data?.content || '';
+      }).filter(Boolean);
+    } catch (error) {
+      logger.error('Failed to get learned patterns', { projectId, error });
+      return [];
+    }
+  }
+
+  /**
+   * Learn from interaction - store important patterns
+   */
+  async learnFromInteraction(
+    projectId: string,
+    type: MemoryType,
+    content: string,
+    metadata: Record<string, unknown> = {}
+  ): Promise<MemoryEntry> {
+    try {
+      const entry = await prisma.projectMemory.create({
+        data: {
+          projectId,
+          userId: null,
+          type,
+          data: {
+            content,
+            ...metadata,
+          },
+          confidence: 1.0,
+        },
+      });
+
+      logger.info('Learned new pattern', { projectId, type, content: content.slice(100) });
+      
+      return {
+        id: entry.id,
+        projectId: entry.projectId,
+        type: entry.type,
+        content,
+        metadata: entry.data as any,
+        confidence: entry.confidence,
+        createdAt: entry.createdAt,
+      };
+    } catch (error) {
+      logger.error('Failed to learn from interaction', { projectId, error });
+      throw error;
+    }
+  }
+
+  /**
+   * Store a mistake to avoid repeating it
+   */
+  async rememberMistake(
+    projectId: string,
+    mistake: string,
+    correction: string,
+    context: string
+  ): Promise<void> {
+    await this.learnFromInteraction(projectId, 'MISTAKE', 
+      `Mistake: ${mistake}\nCorrection: ${correction}\nContext: ${context}`,
+      { category: 'error_prevention' }
+    );
+  }
+
+  /**
+   * Store a preference for future consistency
+   */
+  async rememberPreference(
+    projectId: string,
+    preference: string,
+    reason: string
+  ): Promise<void> {
+    await this.learnFromInteraction(projectId, 'PREFERENCE', 
+      `${preference}\nReason: ${reason}`,
+      { category: 'coding_style' }
+    );
+  }
+
+  /**
+   * Store an architectural decision
+   */
+  async rememberDecision(
+    projectId: string,
+    decision: string,
+    alternatives: string[],
+    consequences: string[]
+  ): Promise<void> {
+    await this.learnFromInteraction(projectId, 'DECISION', 
+      `Decision: ${decision}\nAlternatives: ${alternatives.join(', ')}\nConsequences: ${consequences.join(', ')}`,
+      { category: 'architecture' }
+    );
   }
 
   /**
@@ -207,7 +417,8 @@ export class ProjectMemoryService {
     memory.contextSummary = '';
     memory.lastUpdated = new Date();
     
-    this.memoryStore.set(projectId, memory);
+    this.inMemoryStore.set(projectId, memory);
+    await this.persistToDatabase(projectId, memory);
     
     logger.info('Cleared project memory', { projectId });
     return true;
@@ -217,17 +428,22 @@ export class ProjectMemoryService {
    * Delete project memory entirely
    */
   async delete(projectId: string): Promise<boolean> {
-    const deleted = this.memoryStore.delete(projectId);
+    this.inMemoryStore.delete(projectId);
     
-    if (deleted) {
+    try {
+      await prisma.projectMemory.deleteMany({
+        where: { projectId },
+      });
       logger.info('Deleted project memory', { projectId });
+      return true;
+    } catch (error) {
+      logger.error('Failed to delete project memory', { projectId, error });
+      return false;
     }
-    
-    return deleted;
   }
 
   /**
-   * Summarize older messages to save tokens
+   * Auto-summarize older messages to save tokens
    */
   async autoSummarize(projectId: string): Promise<string | null> {
     const memory = await this.get(projectId);
@@ -236,14 +452,10 @@ export class ProjectMemoryService {
       return null;
     }
 
-    // Get older messages (all except last 5)
     const olderMessages = memory.conversationHistory.slice(0, -5);
     const recentMessages = memory.conversationHistory.slice(-5);
-
-    // Create a summary of what was discussed
     const summary = this.generateSummary(olderMessages);
 
-    // Update memory with summary and recent messages
     memory.conversationHistory = [
       {
         role: 'system',
@@ -254,7 +466,8 @@ export class ProjectMemoryService {
     ];
 
     memory.lastUpdated = new Date();
-    this.memoryStore.set(projectId, memory);
+    this.inMemoryStore.set(projectId, memory);
+    await this.persistToDatabase(projectId, memory);
 
     logger.info('Auto-summarized project memory', { projectId });
     
@@ -270,6 +483,7 @@ export class ProjectMemoryService {
     lastUpdated: Date | null;
     oldestMessage: Date | null;
     roleDistribution: Record<string, number>;
+    learnedEntries: number;
   } | null> {
     const memory = await this.get(projectId);
     
@@ -282,12 +496,21 @@ export class ProjectMemoryService {
       roleDistribution[msg.role] = (roleDistribution[msg.role] || 0) + 1;
     }
 
+    // Get learned entries count
+    const learnedCount = await prisma.projectMemory.count({
+      where: { 
+        projectId,
+        type: { in: ['PREFERENCE', 'PATTERN', 'MISTAKE', 'DECISION'] },
+      },
+    });
+
     return {
       messageCount: memory.conversationHistory.length,
       tokenCount: this.estimateTokenCount(memory.conversationHistory),
       lastUpdated: memory.lastUpdated,
       oldestMessage: memory.conversationHistory[0]?.timestamp || null,
       roleDistribution,
+      learnedEntries: learnedCount,
     };
   }
 
@@ -302,13 +525,46 @@ export class ProjectMemoryService {
     }
 
     const queryLower = query.toLowerCase();
-    
-    // Simple text search (would use full-text search in production)
     const matches = memory.conversationHistory.filter(msg => 
       msg.content.toLowerCase().includes(queryLower)
     );
 
     return matches.slice(-limit);
+  }
+
+  /**
+   * Search learned patterns semantically (basic implementation)
+   */
+  async searchLearnedPatterns(
+    projectId: string, 
+    query: string, 
+    limit: number = 5
+  ): Promise<SemanticSearchResult[]> {
+    try {
+      const memories = await prisma.projectMemory.findMany({
+        where: { 
+          projectId,
+          type: { in: ['PREFERENCE', 'PATTERN', 'MISTAKE', 'DECISION'] },
+          data: {
+            path: ['content'],
+            string_contains: query,
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        take: limit,
+      });
+
+      return memories.map(m => ({
+        id: m.id,
+        content: (m.data as any)?.content || '',
+        type: m.type,
+        score: 1.0,
+        metadata: m.data as any,
+      }));
+    } catch (error) {
+      logger.error('Failed to search learned patterns', { projectId, error });
+      return [];
+    }
   }
 
   /**
@@ -345,7 +601,6 @@ Be helpful, educational, and encouraging. Explain concepts clearly and help deve
 
   /**
    * Estimate token count for text
-   * Rough approximation: 4 characters per token on average
    */
   private estimateTokenCount(text: string | ConversationMessage[]): number {
     if (Array.isArray(text)) {
@@ -365,7 +620,6 @@ Be helpful, educational, and encouraging. Explain concepts clearly and help deve
       return context;
     }
 
-    // Truncate from the middle, keeping start and end
     const startLength = Math.floor(maxChars * 0.4);
     const endLength = Math.floor(maxChars * 0.4);
     
@@ -387,7 +641,6 @@ Be helpful, educational, and encouraging. Explain concepts clearly and help deve
       return 'No user messages recorded.';
     }
 
-    // Take first and last few messages for summary
     const firstFew = userMessages.slice(0, 3);
     const lastFew = userMessages.slice(-3);
 

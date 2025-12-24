@@ -478,6 +478,7 @@ model ProjectMemory {
   userId      String?
   type        MemoryType
   data        Json
+  embedding   Unsupported("vector(1536)")? // For semantic search
   confidence  Float    @default(1.0)
 
   project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -488,6 +489,7 @@ model ProjectMemory {
 
   @@index([projectId])
   @@index([type])
+  @@index([embedding vector_ops]) // For vector similarity search
   @@map("project_memories")
 }
 
