@@ -34,8 +34,22 @@ import { architectureGeneratorRoutes } from './routes/architectureGenerator.rout
 import { testIntelligenceRoutes } from './routes/testIntelligence.routes';
 import { documentationRoutes } from './routes/documentation.routes';
 import { billingRoutes } from './routes/billing.routes';
+import { devToolsRoutes } from './routes/devTools.routes';
+import { regressionRoutes } from './routes/regression.routes';
+import { mediatorRoutes } from './routes/mediator.routes';
+import { costRoutes } from './routes/cost.routes';
+import { healthRoutes } from './routes/health.routes';
+import { prRoutes } from './routes/pr.routes';
 import { websocketHandler } from './services/websocket';
+import { requestMonitoring, monitoringService } from './services/monitoring';
+import { environmentValidator } from './config/envValidation';
 import { logger } from './utils/logger';
+
+// Validate environment (exit on failure in production/strict mode)
+const envValidation = environmentValidator.enforce(process.env.NODE_ENV === 'production');
+
+// Set version from package.json
+monitoringService.setVersion(process.env.npm_package_version || '1.0.0');
 
 const app: Express = appFactory();
 
@@ -79,15 +93,37 @@ if (NODE_ENV !== 'test') {
   app.use(requestLogger);
 }
 
-// Rate limiting
-const limiter = rateLimit({
+// Rate limiting with tiered limits
+const generalLimiter = rateLimit({
   windowMs: RATE_LIMITS.general.windowMs,
   max: RATE_LIMITS.general.maxRequests,
   message: { error: 'Too many requests, please try again later' },
   standardHeaders: true,
   legacyHeaders: false,
 });
-app.use('/api', limiter);
+
+const aiLimiter = rateLimit({
+  windowMs: 60000,
+  max: 50,
+  message: { error: 'AI service rate limit exceeded' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const devToolsLimiter = rateLimit({
+  windowMs: 60000,
+  max: 20,
+  message: { error: 'Development tools rate limit exceeded' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use('/api', generalLimiter);
+app.use('/api/ai', aiLimiter);
+app.use('/api/v1/dev-tools', devToolsLimiter);
+
+// Request monitoring
+app.use(requestMonitoring);
 
 // Health check
 app.get('/health', healthCheck);
@@ -115,6 +151,12 @@ app.use(`${API_PREFIX}/ai/architecture`, architectureGeneratorRoutes);
 app.use(`${API_PREFIX}/ai/tests`, testIntelligenceRoutes);
 app.use(`${API_PREFIX}/ai/documentation`, documentationRoutes);
 app.use(`${API_PREFIX}/billing`, billingRoutes);
+app.use(`${API_PREFIX}/v1/dev-tools`, devToolsRoutes);
+app.use(`${API_PREFIX}/v1/quality/regression`, regressionRoutes);
+app.use(`${API_PREFIX}/v1/collaboration/mediator`, mediatorRoutes);
+app.use(`${API_PREFIX}/v1/collaboration/pr`, prRoutes);
+app.use(`${API_PREFIX}/v1/ops/cost`, costRoutes);
+app.use(`${API_PREFIX}/v1/health`, healthRoutes);
 
 // 404 handler
 app.use((_req: Request, res: Response) => {
